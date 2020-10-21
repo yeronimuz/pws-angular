@@ -34,7 +34,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   // De groep waartoe de respondent behoort (0=GEEN, 1=ROOD, 2=GROEN)
   private groep: Groep;
 
-  constructor(private elementRef: ElementRef, private route: ActivatedRoute) {
+  constructor(private route: ActivatedRoute, private elementRef: ElementRef) {
     // We doen hier niks. elementRef is een koppeling van de code met de html pagina elementen
     // Zodoende kunnen we de achtergrondkleur op rood of groen zetten
   }
@@ -42,9 +42,9 @@ export class AppComponent implements OnInit, AfterViewInit {
   public ngOnInit() {
     this.route.queryParams
       .subscribe(params => {
+        console.log(params);
         this.groep = params.groep;
       });
-    // FIXME: met ?groep=1 wordt this.groep nog niet gezet
     console.log("Groep = ", this.groep);
     this.showGetal = true;
     this.showInput = false;
@@ -61,7 +61,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.showInput = false;
     this.getalTimer = timer(4000);
     this.randomGetal = this.getRandomGetal(cijfers);
-    const subscribe = this.getalTimer.subscribe(val => {
+    this.getalTimer.subscribe(val => {
       this.showGetal = false;
       this.showInput = true;
     });
@@ -82,10 +82,17 @@ export class AppComponent implements OnInit, AfterViewInit {
     if (this.randomGetal !== this.invoerGetal) {
       this.flashWindow();
     }
+    // TODO: Moeten we groen flashen bij een goed antwoord en de groep is 'GROEN'?
   }
 
   flashWindow() {
-    this.elementRef.nativeElement.ownerDocument.body.style.backgroundColor = 'red';
+    let color = 'default';
+    if (this.groep == Groep.ROOD){
+      color = 'red';
+    } else if (this.groep == Groep.GROEN) {
+      color = 'green';
+    }
+    this.elementRef.nativeElement.ownerDocument.body.style.backgroundColor = color;
     const flashTimer = timer(500);
     const subscribe = flashTimer.subscribe(value => {
       this.elementRef.nativeElement.ownerDocument.body.style.backgroundColor = 'white';
