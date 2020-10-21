@@ -1,10 +1,20 @@
 import { AfterViewInit, Component, ElementRef, OnInit } from '@angular/core';
 import { timer } from "rxjs";
-import { formatNumber } from "@angular/common";
+import { ActivatedRoute } from "@angular/router";
 
 class GetalIteratie {
   constructor(public aantal: number, public cijfers: number) {
   }
+}
+
+class Resultaat {
+  constructor(public cijfers: number, isGoed) {}
+}
+
+enum Groep {
+  GEEN,
+  ROOD,
+  GROEN
 }
 
 @Component({
@@ -12,24 +22,34 @@ class GetalIteratie {
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent implements OnInit, AfterViewInit  {
+export class AppComponent implements OnInit, AfterViewInit {
   public title = 'pws-app';
-  public interaties = [new GetalIteratie(2, 4), new GetalIteratie(2, 6)];
+  public iteraties = [new GetalIteratie(2, 4), new GetalIteratie(2, 6)];
   public randomGetal: number;
   public invoerGetal: number;
   public getallen = [];
   public showGetal: boolean = true;
   public showInput: boolean = false;
   private getalTimer;
+  // De groep waartoe de respondent behoort (0=GEEN, 1=ROOD, 2=GROEN)
+  private groep: Groep;
 
-  constructor(private elementRef: ElementRef){
+  constructor(private elementRef: ElementRef, private route: ActivatedRoute) {
     // We doen hier niks. elementRef is een koppeling van de code met de html pagina elementen
     // Zodoende kunnen we de achtergrondkleur op rood of groen zetten
   }
 
   public ngOnInit() {
+    this.route.queryParams
+      .subscribe(params => {
+        this.groep = params.groep;
+      });
+    // FIXME: met ?groep=1 wordt this.groep nog niet gezet
+    console.log("Groep = ", this.groep);
     this.showGetal = true;
     this.showInput = false;
+    // TODO: Hoe moeten we loopen over this.iteraties?
+    this.nieuwGetal(4);
   }
 
   ngAfterViewInit(): void {
@@ -61,14 +81,13 @@ export class AppComponent implements OnInit, AfterViewInit  {
 
     if (this.randomGetal !== this.invoerGetal) {
       this.flashWindow();
-
     }
   }
 
   flashWindow() {
     this.elementRef.nativeElement.ownerDocument.body.style.backgroundColor = 'red';
     const flashTimer = timer(500);
-    const subscribe = flashTimer.subscribe( value => {
+    const subscribe = flashTimer.subscribe(value => {
       this.elementRef.nativeElement.ownerDocument.body.style.backgroundColor = 'white';
     })
   }
