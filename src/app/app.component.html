@@ -1,0 +1,21 @@
+<div>
+
+  <!-- Highlight Card -->
+  <div>
+    <span><h1>{{ title }}</h1></span>
+  </div>
+  <div>
+    <p>
+      Hier komt de uitleg
+    </p>
+
+  </div>
+  <div *ngFor="let iteratie of interaties">
+    <div *ngFor="let aantal of [].constructor(iteratie.aantal)">
+      <mat-label *ngIf="showGetal">{{nieuwGetal(iteratie.cijfers)}}</mat-label>
+      <div>
+        <input matInput *ngIf="showInput" enabled="true" type="number" [(ngModel)]="invoerGetal" (keyup.enter)="onInputGetal()">
+      </div>
+    </div>
+  </div>
+</div>
