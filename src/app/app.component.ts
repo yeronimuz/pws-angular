@@ -2,11 +2,6 @@ import { AfterViewInit, Component, ElementRef, OnInit } from '@angular/core';
 import { timer } from "rxjs";
 import { ActivatedRoute } from "@angular/router";
 
-class GetalIteratie {
-  constructor(public aantal: number, public cijfers: number) {
-  }
-}
-
 class Resultaat {
   constructor(public cijfers: number, isGoed) {}
 }
@@ -24,7 +19,7 @@ enum Groep {
 })
 export class AppComponent implements OnInit, AfterViewInit {
   public title = 'pws-app';
-  public iteraties = [new GetalIteratie(2, 4), new GetalIteratie(2, 6)];
+  public aantalVragen = [4, 4, 6, 6];
   public randomGetal: number;
   public invoerGetal: number;
   public getallen = [];
@@ -39,6 +34,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     // Zodoende kunnen we de achtergrondkleur op rood of groen zetten
   }
 
+  // OnInit implemented methode
   public ngOnInit() {
     this.route.queryParams
       .subscribe(params => {
@@ -52,6 +48,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.nieuwGetal(4);
   }
 
+  // AfterViewInit implemented methode
   ngAfterViewInit(): void {
     this.elementRef.nativeElement.ownerDocument.body.style.backgroundColor = 'default';
   }
@@ -96,7 +93,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     const flashTimer = timer(500);
     const subscribe = flashTimer.subscribe(value => {
       this.elementRef.nativeElement.ownerDocument.body.style.backgroundColor = 'white';
+      this.nieuwGetal(4);
     })
   }
-
 }
