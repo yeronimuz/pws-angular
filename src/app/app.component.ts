@@ -1,6 +1,8 @@
 import { AfterViewInit, Component, ElementRef, OnInit } from '@angular/core';
-import { timer } from "rxjs";
+import { Observable, timer } from "rxjs";
 import { ActivatedRoute } from "@angular/router";
+import {Http, Headers} from '@angular/http';
+import { HttpClient } from "@angular/common/http";
 
 /**
  * Sla het resultaat op
@@ -37,7 +39,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   // De groep waartoe de respondent behoort (0=GEEN, 1=ROOD, 2=GROEN)
   private groep: Groep;
 
-  constructor(private route: ActivatedRoute, private elementRef: ElementRef) {
+  constructor(private route: ActivatedRoute, private elementRef: ElementRef, private httpClient: HttpClient) {
     // We doen hier niks. elementRef is een koppeling van de code met de html pagina elementen
     // Zodoende kunnen we de achtergrondkleur op rood of groen zetten
   }
@@ -64,6 +66,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   public nieuwGetal() {
+    this.invoerGetal = null;
     this.showGetal = true;
     this.showInput = false;
     this.getalTimer = timer(4000);
@@ -115,20 +118,31 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.elementRef.nativeElement.ownerDocument.body.style.backgroundColor = 'white';
         if (this.vraagCounter < this.aantalVragen.length - 1) {
           this.vraagCounter++;
-          this.invoerGetal = null;
           this.nieuwGetal();
         } else {
           // Klaar, toon een bedankje en stuur de antwoorden op
+          this.invoerGetal = null;
+          this.showInput = false;
+          this.showGetal = false;
           console.log('Klaar');
           console.log(this.resultaat);
           // TODO: showDank()
-          // TODO: sendEmail()
+          const email = '{email: "from PWS"}';
+          const headers = { 'Content-Type': 'application/json' };
+          this.httpClient.post('https://formspree.io/f/mdopgble',
+            {name: 'jeroen@lankheet.com', replyto: 'jeroen@lankheet.org', message: email},
+            { 'headers': headers }).subscribe(
+            response => {
+              console.log(response);
+            }
+          );
+          // https://formspree.io/f/mdopgble
+
         }
       })
     } else {
       // Het getal was goed, volgende getal
       this.vraagCounter++;
-      this.invoerGetal = null;
       this.nieuwGetal()
     }
   }

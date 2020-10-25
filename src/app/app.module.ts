@@ -6,6 +6,7 @@ import { FormsModule } from "@angular/forms";
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { RouterModule } from "@angular/router";
+import { HttpClientModule} from "@angular/common/http";
 
 @NgModule({
   declarations: [
@@ -16,6 +17,7 @@ import { RouterModule } from "@angular/router";
     FormsModule,
     BrowserAnimationsModule,
     MatFormFieldModule,
+    HttpClientModule,
     RouterModule.forRoot([])
   ],
   providers: [],
