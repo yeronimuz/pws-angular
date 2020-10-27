@@ -4,7 +4,10 @@
   </div>
   <div>
     <mat-label *ngIf="showUitleg">
-      Hier komt de uitleg
+      {{uitlegText}}
+      <p>
+      <span><button *ngIf="showButton" mat-button (click)="start()">{{buttonText}}</button></span>
+      </p>
     </mat-label>
 
   </div>
@@ -13,9 +16,5 @@
       <div>
         <input matInput *ngIf="showInput" enabled="true" type="number" [(ngModel)]="invoerGetal" (keyup.enter)="onInputGetal()">
       </div>
-  </div>
-  <div>
-    <mat-label *ngIf="showDank">Bedankt voor het meedoen aan de proef.
-      Je mag de browser sluiten.</mat-label>
   </div>
 </div>

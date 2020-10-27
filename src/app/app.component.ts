@@ -32,13 +32,17 @@ export class AppComponent implements OnInit, AfterViewInit {
   public identificatie
   public aantalVragen = [4, 4, 6, 6];
   private vraagCounter: number = 0;
+
   public randomGetal: number;
   public invoerGetal: number;
   public resultaat: Resultaat[] = [];
+
   public showUitleg: boolean = true;
   public showGetal: boolean = true;
   public showInput: boolean = false;
-  public showDank: boolean = false;
+  public showButton: boolean = false;
+  public buttonText = 'oefen';
+  public uitlegText = 'Druk op oefen voor een oefenrondje';
   private getalTimer;
   // De groep waartoe de respondent behoort (0=GEEN, 1=ROOD, 2=GROEN)
   private groep: Groep;
@@ -57,11 +61,19 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.identificatie = params.identificatie;
       });
     console.log("Groep = ", this.groep);
-    this.showGetal = true;
+    this.showGetal = false;
     this.showInput = false;
+    this.showButton = true;
     this.vraagCounter = 0;
-    this.nieuwGetal();
   }
+
+  public start()
+  {
+    this.showButton = false;
+    this.showUitleg = false;
+    this.nieuwGetal()
+  }
+
 
   // AfterViewInit implemented methode
   ngAfterViewInit(): void {
@@ -112,20 +124,30 @@ export class AppComponent implements OnInit, AfterViewInit {
     if (this.groep == Groep.GROEN && this.randomGetal === this.invoerGetal) {
       this.flashWindow('green');
     }
-    if (this.vraagCounter < this.aantalVragen.length - 1) {
-      this.vraagCounter++;
+    // Het proefrondje stopt na 2 getallen (0, 1)
+    if (this.vraagCounter == 1)
+    {
+      this.uitlegText = 'Je hebt nu een proefrondje gedaan, klik op start voor de test';
+      this.showUitleg = true;
+      this.buttonText = 'start'
+      this.showButton = true;
+      this.showGetal = false;
+      this.showInput = false;
+    } else if (this.vraagCounter < this.aantalVragen.length - 1) {
+      this.showGetal = true;
+      this.showButton = false;
       this.nieuwGetal();
     } else {
       // Klaar, toon een bedankje en stuur de antwoorden op
       this.invoerGetal = null;
       this.showInput = false;
       this.showGetal = false;
-      console.log('Klaar');
-      console.log(this.resultaat);
-      this.showUitleg = false;
-      this.showDank = true;
+      this.showButton = false;
+      this.uitlegText = 'Bedankt voor het meedoen aan deze test. Je mag je browser venster sluiten'
+      this.showUitleg = true;
       this.stuurResultaatOp();
     }
+    this.vraagCounter++;
   }
 
   /**
