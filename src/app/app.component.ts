@@ -1,7 +1,6 @@
 import { AfterViewInit, Component, ElementRef, OnInit } from '@angular/core';
-import { Observable, timer } from "rxjs";
+import { timer } from "rxjs";
 import { ActivatedRoute } from "@angular/router";
-import {Http, Headers} from '@angular/http';
 import { HttpClient } from "@angular/common/http";
 
 /**
@@ -12,6 +11,9 @@ class Resultaat {
               public groep: number,
               public cijfers: number,
               public isGoed: number) {}
+  public toString = () : string => {
+    return '{' + this.identificatie + ', ' + this.groep + ', ' + this.cijfers + ', ' + this.isGoed + '}'
+  }
 }
 
 enum Groep {
@@ -33,8 +35,10 @@ export class AppComponent implements OnInit, AfterViewInit {
   public randomGetal: number;
   public invoerGetal: number;
   public resultaat: Resultaat[] = [];
+  public showUitleg: boolean = true;
   public showGetal: boolean = true;
   public showInput: boolean = false;
+  public showDank: boolean = false;
   private getalTimer;
   // De groep waartoe de respondent behoort (0=GEEN, 1=ROOD, 2=GROEN)
   private groep: Groep;
@@ -56,7 +60,6 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.showGetal = true;
     this.showInput = false;
     this.vraagCounter = 0;
-    // TODO: Hoe moeten we loopen over this.iteraties?
     this.nieuwGetal();
   }
 
@@ -79,11 +82,15 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   /**
    * Math.random levert een getal tussen 0 en 1. Door dit getal * (max - min) + min te doen, krijg je een getal tussen min en max
+   * Het getal ligt dus in de range: 10^3 .. 10^4 - 1 waarbij hier cijfers = 4
    */
   getRandomGetal(cijfers: number) {
     return Math.round(Math.random() * (Math.pow(10, cijfers) - 1 - Math.pow(10, (cijfers - 1))) + Math.pow(10, (cijfers - 1)));
   }
 
+  /**
+   * Wanneer er een getal is ingevoerd (beeindigd met <enter>), dan wordt deze functie aangeroepen
+   */
   onInputGetal() {
     console.log(this.invoerGetal)
     this.showInput = false;
@@ -97,53 +104,53 @@ export class AppComponent implements OnInit, AfterViewInit {
         (this.randomGetal === this.invoerGetal) ? 1 : 0))
     console.log(this.vraagCounter);
     console.log(this.resultaat);
-    this.flashWindow();
+    // We roepen flashWindow aan ook als er niet geflashed moet worden.
+    // Dit is omdat het vervolg van de software in de flashWindow zit
+    if (this.groep == Groep.ROOD && this.randomGetal !== this.invoerGetal) {
+      this.flashWindow('red');
+    }
+    if (this.groep == Groep.GROEN && this.randomGetal === this.invoerGetal) {
+      this.flashWindow('green');
+    }
+    if (this.vraagCounter < this.aantalVragen.length - 1) {
+      this.vraagCounter++;
+      this.nieuwGetal();
+    } else {
+      // Klaar, toon een bedankje en stuur de antwoorden op
+      this.invoerGetal = null;
+      this.showInput = false;
+      this.showGetal = false;
+      console.log('Klaar');
+      console.log(this.resultaat);
+      this.showUitleg = false;
+      this.showDank = true;
+      this.stuurResultaatOp();
+    }
   }
 
   /**
-   * Functie voor het flashen van het window. Na het flashen gaat het programma door met het volgende nieuwe getal
-   * Het flitsen gaat met rood, groen of het kleur van het window. Het flitsen gebeurt dus altijd.
+   * Functie voor het flashen van het window.
    */
-  flashWindow() {
-    let color = 'default';
-    if (this.groep == Groep.ROOD) {
-      color = 'red';
-    } else if (this.groep == Groep.GROEN) {
-      color = 'green';
-    }
-    if (this.randomGetal !== this.invoerGetal) {
+  private flashWindow(color: string) {
       this.elementRef.nativeElement.ownerDocument.body.style.backgroundColor = color;
-      const flashTimer = timer(100);
+      const flashTimer = timer(20);
       flashTimer.subscribe(value => {
         this.elementRef.nativeElement.ownerDocument.body.style.backgroundColor = 'white';
-        if (this.vraagCounter < this.aantalVragen.length - 1) {
-          this.vraagCounter++;
-          this.nieuwGetal();
-        } else {
-          // Klaar, toon een bedankje en stuur de antwoorden op
-          this.invoerGetal = null;
-          this.showInput = false;
-          this.showGetal = false;
-          console.log('Klaar');
-          console.log(this.resultaat);
-          // TODO: showDank()
-          const email = '{email: "from PWS"}';
-          const headers = { 'Content-Type': 'application/json' };
-          this.httpClient.post('https://formspree.io/f/mdopgble',
-            {name: 'jeroen@lankheet.com', replyto: 'jeroen@lankheet.org', message: email},
-            { 'headers': headers }).subscribe(
-            response => {
-              console.log(response);
-            }
-          );
-          // https://formspree.io/f/mdopgble
-
-        }
       })
-    } else {
-      // Het getal was goed, volgende getal
-      this.vraagCounter++;
-      this.nieuwGetal()
-    }
+  }
+
+  /**
+   * Stuur de antwoorden op via formspree mail backend
+   */
+  private stuurResultaatOp() {
+    const email = this.resultaat.toString();
+    const headers = { 'Content-Type': 'application/json' };
+    this.httpClient.post('https://formspree.io/f/mdopgble',
+      { name: 'jeroen@lankheet.com', replyto: 'jeroen@lankheet.org', message: email },
+      { 'headers': headers }).subscribe(
+      response => {
+        console.log(response);
+      }
+    );
   }
 }
