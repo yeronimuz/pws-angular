@@ -13,7 +13,7 @@
   </div>
   <div>
       <mat-label *ngIf="showGetal">{{randomGetal}}</mat-label>
-      <div>
+      <div class="inputGetal">
         <input matInput *ngIf="showInput" enabled="true" type="number" [(ngModel)]="invoerGetal" (keyup.enter)="onInputGetal()">
       </div>
   </div>
