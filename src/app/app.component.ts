@@ -11,8 +11,9 @@ class Resultaat {
               public groep: number,
               public cijfers: number,
               public isGoed: number) {}
-  public toString = () : string => {
-    return '{' + this.identificatie + ', ' + this.groep + ', ' + this.cijfers + ', ' + this.isGoed + '}'
+
+  public toString = (): string => {
+    return this.groep + ', ' + this.cijfers + ', ' + this.isGoed + ',\n'
   }
 }
 
@@ -30,7 +31,7 @@ enum Groep {
 export class AppComponent implements OnInit, AfterViewInit {
   public title = 'pws-app';
   public identificatie
-  public aantalVragen = [4, 4, 6, 6];
+  public aantalVragen = [4, 5, 6, 4, 5, 6, 7, 8, 9, 10, 11, 12];
   private vraagCounter: number = 0;
 
   public randomGetal: number;
@@ -42,7 +43,11 @@ export class AppComponent implements OnInit, AfterViewInit {
   public showInput: boolean = false;
   public showButton: boolean = false;
   public buttonText = 'oefen';
-  public uitlegText = 'Druk op oefen voor een oefenrondje';
+  public uitlegText = '<p>Bedankt dat je mee wilt doen aan dit onderzoek voor ons profielwerkstuk. Lees de uitleg goed door voor je begint.</p>' +
+    '<p>Als je op de \'oefen\' knop klikt zal je een getal te zien krijgen. Probeer deze zo goed mogelijk te onthouden. Hiervoor heb je een aantal seconden te tijd.</p>' +
+    '<p>Het getal zal verdwijnen. Probeer nu exact hetzelfde getal als dat je eerder zag weer in te voeren in het invoerbalkje.</p>' +
+    '<p>Zodra je op enter drukt ga je gelijk naar de volgende vraag.</p>' +
+    '<p>Druk op de \'oefen\' knop om te beginnen met de 3 oefenvragen.</p>';
   private getalTimer;
   // De groep waartoe de respondent behoort (0=GEEN, 1=ROOD, 2=GROEN)
   private groep: Groep;
@@ -58,7 +63,6 @@ export class AppComponent implements OnInit, AfterViewInit {
       .subscribe(params => {
         console.log(params);
         this.groep = params.groep;
-        this.identificatie = params.identificatie;
       });
     console.log("Groep = ", this.groep);
     this.showGetal = false;
@@ -67,8 +71,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.vraagCounter = 0;
   }
 
-  public start()
-  {
+  public start() {
     this.showButton = false;
     this.showUitleg = false;
     this.nieuwGetal()
@@ -81,11 +84,11 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   public nieuwGetal() {
+    this.randomGetal = this.getRandomGetal(this.aantalVragen[this.vraagCounter]);
     this.invoerGetal = null;
     this.showGetal = true;
     this.showInput = false;
-    this.getalTimer = timer(4000);
-    this.randomGetal = this.getRandomGetal(this.aantalVragen[this.vraagCounter]);
+    this.getalTimer = timer(6000);
     this.getalTimer.subscribe(val => {
       this.showGetal = false;
       this.showInput = true;
@@ -97,14 +100,20 @@ export class AppComponent implements OnInit, AfterViewInit {
    * Het getal ligt dus in de range: 10^3 .. 10^4 - 1 waarbij hier cijfers = 4
    */
   getRandomGetal(cijfers: number) {
-    return Math.round(Math.random() * (Math.pow(10, cijfers) - 1 - Math.pow(10, (cijfers - 1))) + Math.pow(10, (cijfers - 1)));
+    var min = Math.pow(10, cijfers - 1); // 10 ^ (4 - 1) = 1000
+    var max = Math.pow(10, cijfers) - 1; // 10 ^ 4 - 1 = 10.000 - 1 = 9999
+    return Math.floor(Math.random() * (max - min) + min);
   }
 
   /**
    * Wanneer er een getal is ingevoerd (beeindigd met <enter>), dan wordt deze functie aangeroepen
    */
   onInputGetal() {
-    console.log(this.invoerGetal)
+    console.log('Cijfers: ' + this.aantalVragen[this.vraagCounter]);
+    console.log('Random getal: ' + this.randomGetal);
+    console.log('Ingevoerd: ' + this.invoerGetal)
+    console.log('Counter: ' + this.vraagCounter);
+    console.log('Resultaat: ' + this.resultaat);
     this.showInput = false;
     this.showGetal = true;
 
@@ -114,20 +123,20 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.groep,
         this.aantalVragen[this.vraagCounter],
         (this.randomGetal === this.invoerGetal) ? 1 : 0))
-    console.log(this.vraagCounter);
-    console.log(this.resultaat);
-    // We roepen flashWindow aan ook als er niet geflashed moet worden.
-    // Dit is omdat het vervolg van de software in de flashWindow zit
     if (this.groep == Groep.ROOD && this.randomGetal !== this.invoerGetal) {
       this.flashWindow('red');
     }
     if (this.groep == Groep.GROEN && this.randomGetal === this.invoerGetal) {
       this.flashWindow('green');
     }
-    // Het proefrondje stopt na 2 getallen (0, 1)
-    if (this.vraagCounter == 1)
-    {
-      this.uitlegText = 'Je hebt nu een proefrondje gedaan, klik op start voor de test';
+    // Het proefrondje stopt na 3 getallen (we tellen vanaf 0)
+    if (this.vraagCounter == 2) {
+      this.uitlegText = '<p>Je hebt de oefenvragen afgerond.</p>' +
+        '<p>Nu ga je beginnen met de echte test. Deze werkt hetzelfde als de oefentest.</p>' +
+        '<p>Druk op \'start\' om te beginnen. Je zal weer een getal te zien krijgen. Probeer deze zo goed mogelijk te onthouden. Hiervoor heb je een aantal seconden te tijd.</p>' +
+        '<p>Het getal zal verdwijnen. Probeer nu exact hetzelfde getal als dat je eerder zag weer in te voeren in het invoerbalkje.</p>' +
+        '<p>Zodra je op enter drukt ga je gelijk naar de volgende vraag.</p>' +
+        '<p>De echte test bevat 9 vragen. Het aantal cijfers zal oplopen. Doe gewoon zo goed mogelijk je best. Druk op \'start\' om te beginnen met de test.</p>';
       this.showUitleg = true;
       this.buttonText = 'start'
       this.showButton = true;
@@ -143,7 +152,8 @@ export class AppComponent implements OnInit, AfterViewInit {
       this.showInput = false;
       this.showGetal = false;
       this.showButton = false;
-      this.uitlegText = 'Bedankt voor het meedoen aan deze test. Je mag je browser venster sluiten'
+      this.uitlegText = '<p>Heel erg bedankt voor het meedoen aan ons onderzoek!</p>' +
+        '<p>Dit was alles wat we van je nodig hebben. Je kunt het tabblad nu sluiten.</p>';
       this.showUitleg = true;
       this.stuurResultaatOp();
     }
@@ -154,11 +164,11 @@ export class AppComponent implements OnInit, AfterViewInit {
    * Functie voor het flashen van het window.
    */
   private flashWindow(color: string) {
-      this.elementRef.nativeElement.ownerDocument.body.style.backgroundColor = color;
-      const flashTimer = timer(20);
-      flashTimer.subscribe(value => {
-        this.elementRef.nativeElement.ownerDocument.body.style.backgroundColor = 'white';
-      })
+    this.elementRef.nativeElement.ownerDocument.body.style.backgroundColor = color;
+    const flashTimer = timer(20);
+    flashTimer.subscribe(value => {
+      this.elementRef.nativeElement.ownerDocument.body.style.backgroundColor = 'white';
+    })
   }
 
   /**

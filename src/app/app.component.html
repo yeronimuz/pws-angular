@@ -3,13 +3,10 @@
     <span><h1>{{ title }}</h1></span>
   </div>
   <div>
-    <mat-label *ngIf="showUitleg">
-      {{uitlegText}}
-      <p>
-      <span><button *ngIf="showButton" mat-button (click)="start()">{{buttonText}}</button></span>
-      </p>
+    <mat-label *ngIf="showUitleg"
+      [innerHtml]="uitlegText">
     </mat-label>
-
+      <span><button *ngIf="showButton" mat-button (click)="start()">{{buttonText}}</button></span>
   </div>
   <div>
       <mat-label *ngIf="showGetal">{{randomGetal}}</mat-label>
